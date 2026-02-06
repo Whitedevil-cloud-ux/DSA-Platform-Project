@@ -22,9 +22,30 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: new Date(),
     },
+
+    onboarding: {
+        level: {
+            type: String,
+            enum: ["beginner", "intermediate"],
+        },
+        goal: {
+            type: String,
+            enum: ["interview", "revision"],
+        },
+        dailyTime: {
+            type: Number,
+        },
+        completed: {
+            type: Boolean,
+            default: false,
+        },
+    },
 });
 
 userSchema.pre("save", async function () {
+    if(!this.isModified("password")){
+        return;
+    }
     this.password = await bcrypt.hash(this.password, 12);
 });
 

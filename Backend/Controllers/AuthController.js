@@ -16,7 +16,6 @@ module.exports.signup = async (req, res, next) => {
             httpOnly: false,
         });
         res.status(201).json({message: "User signed up successfully", success: true, user });
-        next();
     }catch(error){
         console.error(error);
     }
@@ -42,7 +41,6 @@ module.exports.login = async (req, res, next) => {
             httpOnly: false,
         });
         res.status(201).json({ message: "User logged in successfully", success: true });
-        next()
     }catch (error){
         console.error(errror);
     }
