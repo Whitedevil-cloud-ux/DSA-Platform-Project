@@ -6,10 +6,13 @@ require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const authRoute = require("./Routes/AuthRoutes");
 const userRoute = require("./Routes/UserRoutes");
+const submissionRoute = require("./Routes/SubmissionRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
-    .connect(MONGO_URL)
+    .connect(MONGO_URL, {
+        dbName: "dsaPlatform",
+    })
     .then(() => console.log("MongoDB is connected successfully"))
     .catch((err) => console.error(err));
 
@@ -29,3 +32,4 @@ app.use(express.json());
 
 app.use("/", authRoute);
 app.use("/api/user", userRoute);
+app.use("/api/submission", submissionRoute);
