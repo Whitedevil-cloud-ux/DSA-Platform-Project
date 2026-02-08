@@ -8,6 +8,7 @@ const authRoute = require("./Routes/AuthRoutes");
 const userRoute = require("./Routes/UserRoutes");
 const submissionRoute = require("./Routes/SubmissionRoutes");
 const dailyPlanRoute = require("./Routes/DailyPlanRoutes");
+const streakRoute = require("./Routes/StreakRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
@@ -35,3 +36,4 @@ app.use("/", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/submission", submissionRoute);
 app.use("/api/daily-plan", dailyPlanRoute);
+app.use("/api/streak", streakRoute);

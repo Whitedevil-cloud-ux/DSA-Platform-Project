@@ -1,4 +1,5 @@
 const { handleSubmission } = require("../services/SubmissionService");
+const { updateUserStreak } = require("../services/StreakService");
 
 async function submitProblem(req, res) {
     const { problemId, isCorrect, difficulty, language } = req.body;
@@ -11,6 +12,10 @@ async function submitProblem(req, res) {
         difficulty,
         language,
     });
+
+    if(isCorrect === true){
+        await updateUserStreak(userId);
+    }
 
     res.status(201).json({ message: "Submission recorded successfully", success: true, data: submission });
 }
