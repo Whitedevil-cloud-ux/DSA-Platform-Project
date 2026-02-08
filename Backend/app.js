@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const authRoute = require("./Routes/AuthRoutes");
 const userRoute = require("./Routes/UserRoutes");
 const submissionRoute = require("./Routes/SubmissionRoutes");
+const dailyPlanRoute = require("./Routes/DailyPlanRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
@@ -33,3 +34,4 @@ app.use(express.json());
 app.use("/", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/submission", submissionRoute);
+app.use("/api/daily-plan", dailyPlanRoute);
