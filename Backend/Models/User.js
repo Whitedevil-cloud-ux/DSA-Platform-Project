@@ -40,6 +40,41 @@ const userSchema = new mongoose.Schema({
             default: false,
         },
     },
+
+    lastActiveDate: {
+        type: String,
+        default: null,
+    },
+
+    currentStreak: {
+        type: Number,
+        default: 0,
+    },
+
+    maxStreak: {
+        type: Number,
+        default: 0,
+    },
+
+    lastPressureAt: {
+        type: Date,
+        default: null,
+    },
+
+    recoveryStreak: {
+        type: Number,
+        default: 0,
+    },
+
+    inRecovery: {
+        type: Boolean,
+        default: false,
+    },
+
+    pressureCooldownUntil: {
+        type: Date,
+        default: null,
+    },
 });
 
 userSchema.pre("save", async function () {

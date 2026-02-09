@@ -1,8 +1,14 @@
 const Submission = require("../Models/Submission");
 const Problem = require("../Models/Problem");
+const User = require("../Models/User");
 const UserPatternProgress = require("../Models/UserPatternProgress");
 const Pattern = require("../Models/Pattern");
+const PressureEvent = require("../Models/PressureEvent");
 const { calculateMasteryScore } = require("./MasteryScoreService");
+const { detectMissedDayAndUpdateStreak } = require("./StreakService");
+const { generatePressureSignal } = require("./PressureService");
+const { shouldTriggerResponse } = require("./pressureHookService");
+const { detectComeback, handleRecovery, updateRecoveryProgress } = require("./recoveryService");
 
 async function handleSubmission({
     userId,
@@ -11,6 +17,28 @@ async function handleSubmission({
     difficulty,
     language,  
 }) {
+    const user = await User.findById(userId);
+    if(!user){
+        throw new Error("User not found");
+    }
+    const streakResult = detectMissedDayAndUpdateStreak(user);
+    const pressureSignal = generatePressureSignal(streakResult);
+    let shouldNudge = false;
+    if(user.inRecovery){
+        shouldNudge = shouldTriggerResponse(user, pressureSignal);
+        if(shouldNudge){
+            user.lastPressureAt = new Date();
+        }
+    }
+    if(shouldNudge && pressureSignal){
+        await PressureEvent.create({
+            userId: user._id,
+            type: pressureSignal.type,
+            severity: pressureSignal.severity,
+            context: pressureSignal.context || {},
+        });
+    }
+
     const submission = await Submission.create({
         userId,
         problemId,
@@ -18,6 +46,16 @@ async function handleSubmission({
         difficulty,
         language,
     });
+    const comebackSignal = await detectComeback(user._id);
+    if(comebackSignal){
+        await handleRecovery(user, comebackSignal);
+        // consume chain break event
+        await PressureEvent.findByIdAndUpdate(comebackSignal.sourcePressureEventId, { isConsumed: true });
+    }else{
+        updateRecoveryProgress(user);
+    }
+    
+    await user.save();
 
     const problem = await Problem.findById(problemId).populate("patterns");
     if(!problem){
@@ -31,7 +69,7 @@ async function handleSubmission({
             difficulty,
         });
     }
-    return submission;
+    return { submission, streakResult, pressureSignal, shouldNudge, };
 }
 
 async function updatePatternProgress({

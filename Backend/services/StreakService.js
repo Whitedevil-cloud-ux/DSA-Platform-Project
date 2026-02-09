@@ -1,4 +1,5 @@
 const UserStreak = require("../Models/UserStreak");
+const { getTodayDate } = require("../util/DateUtils");
 
 function normalizeDate(date){
     const d = new Date(date);
@@ -39,4 +40,35 @@ async function updateUserStreak(userId) {
     return streak;
 }
 
-module.exports = { updateUserStreak };
+function detectMissedDayAndUpdateStreak(user) {
+    const today = getTodayDate();
+    if(!user.lastActiveDate){
+        user.currentStreak = 1;
+        user.maxStreak = 1;
+        user.lastActiveDate = today;
+        return { status: "first_day" };
+    }
+
+    if(user.lastActiveDate === today){
+        return { status: "same_day" };
+    }
+
+    const last = new Date(user.lastActiveDate);
+    const now = new Date(today);
+
+    const diffDays = Math.floor((now-last) / (1000 * 60 * 60 * 24));
+    if(diffDays === 1){
+        user.currentStreak += 1;
+        user.maxStreak = Math.max(user.maxStreak, user.currentStreak);
+        user.lastActiveDate = today;
+        return { status: "continued" };
+    }
+    if(diffDays > 1){
+        const brokenStreak = user.currentStreak;
+        user.maxStreak = 1;
+        user.lastActiveDate = today;
+        return { status: "missed", brokenStreak };
+    }
+}
+
+module.exports = { updateUserStreak, detectMissedDayAndUpdateStreak, };
