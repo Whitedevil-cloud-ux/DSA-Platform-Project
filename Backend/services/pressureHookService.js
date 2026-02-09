@@ -2,6 +2,16 @@ const { getTodayDate } = require("../util/DateUtils");
 
 function shouldTriggerResponse(user, pressureSignal){
     if(!pressureSignal) return false;
+
+    // cooldown active -> silence
+    if(user.pressureCooldownUntil && user.pressureCooldownUntil > new Date()){
+        return false;
+    }
+
+    // recovery phase
+    if(user.inRecovery){
+        return false;
+    }
     
     const today = getTodayDate();
     if(user.lastPressureAt && user.lastPressureAt.toISOString().slice(0, 10) === today){
