@@ -5,10 +5,13 @@ const UserPatternProgress = require("../Models/UserPatternProgress");
 const Pattern = require("../Models/Pattern");
 const PressureEvent = require("../Models/PressureEvent");
 const { calculateMasteryScore } = require("./MasteryScoreService");
-const { detectMissedDayAndUpdateStreak } = require("./StreakService");
-const { generatePressureSignal } = require("./PressureService");
+const { detectMissedDayAndUpdateStreak, computeStreakTrend, computeWeeklyConsistency } = require("./StreakService");
+const { generatePressureSignal, computeDynamicPressure } = require("./PressureService");
 const { shouldTriggerResponse } = require("./pressureHookService");
 const { detectComeback, handleRecovery, updateRecoveryProgress } = require("./recoveryService");
+const { generateReinforcementSignal } = require("./reinforcementService");
+const { orchestrateResponse } = require("./ResponseOrchestratorService");
+const { mapIntentToMessage } = require("./MessageMapper");
 
 async function handleSubmission({
     userId,
@@ -39,6 +42,7 @@ async function handleSubmission({
         });
     }
 
+    // Create submission
     const submission = await Submission.create({
         userId,
         problemId,
@@ -46,15 +50,51 @@ async function handleSubmission({
         difficulty,
         language,
     });
+
+    // Detect comeback & recovery first
     const comebackSignal = await detectComeback(user._id);
-    if(comebackSignal){
-        await handleRecovery(user, comebackSignal);
-        // consume chain break event
-        await PressureEvent.findByIdAndUpdate(comebackSignal.sourcePressureEventId, { isConsumed: true });
-    }else{
-        updateRecoveryProgress(user);
+    let recoverySignal = null;
+
+    if (comebackSignal) {
+        recoverySignal = await handleRecovery(user, comebackSignal);
+
+        await PressureEvent.findByIdAndUpdate(
+            comebackSignal.sourcePressureEventId,
+            { isConsumed: true }
+        );
+    } else {
+        recoverySignal = updateRecoveryProgress(user);
     }
+
+    // Compute behavioral analytics AFTER recovery update
+    const dynamicPressure = await computeDynamicPressure(userId);
+
+    if (dynamicPressure.level === "high") {
+        await PressureEvent.create({
+            userId,
+            type: "BEHAVIORAL_PRESSURE",
+            severity: "high",
+            context: dynamicPressure.breakdown,
+        });
+    }
+
+    const streakTrend = await computeStreakTrend(userId);
+    const weeklyConsistency = await computeWeeklyConsistency(userId);
+
+    // Orchestrate response (NOW recoverySignal exists)
+    const finalResponse = orchestrateResponse({
+        dynamicPressure,
+        streakTrend,
+        weeklyConsistency,
+        recoverySignal,
+    });
     
+    const uiMessage = finalResponse?.intent
+    ? mapIntentToMessage(finalResponse.intent)
+    : null;
+
+    const reinforcementSignal = generateReinforcementSignal(user, recoverySignal);
+
     await user.save();
 
     const problem = await Problem.findById(problemId).populate("patterns");
@@ -69,7 +109,16 @@ async function handleSubmission({
             difficulty,
         });
     }
-    return { submission, streakResult, pressureSignal, shouldNudge, };
+    return { 
+        submission, 
+        signals: {
+            dynamicPressure,
+            streakTrend,
+            weeklyConsistency,
+        },
+        decision: finalResponse,
+        uiMessage,
+    };
 }
 
 async function updatePatternProgress({

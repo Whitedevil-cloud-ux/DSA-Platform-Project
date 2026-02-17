@@ -75,6 +75,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+
+    lastFeedbackAt: {
+        type: Date,
+        default: null,
+    },
 });
 
 userSchema.pre("save", async function () {

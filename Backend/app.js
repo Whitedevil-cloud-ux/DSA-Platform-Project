@@ -9,6 +9,9 @@ const userRoute = require("./Routes/UserRoutes");
 const submissionRoute = require("./Routes/SubmissionRoutes");
 const dailyPlanRoute = require("./Routes/DailyPlanRoutes");
 const streakRoute = require("./Routes/StreakRoutes");
+const feedbackRoute = require("./Routes/feedbackRoutes");
+const insightRoute = require("./Routes/InsightRoutes");
+const patternInsightRoute = require("./Routes/PatternInsightRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
@@ -24,7 +27,7 @@ app.listen(PORT, () => {
 
 app.use(
     cors({
-        origin: ["http://localhost:8080"],
+        origin: ["http://localhost:5173"],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     })
@@ -37,3 +40,6 @@ app.use("/api/user", userRoute);
 app.use("/api/submission", submissionRoute);
 app.use("/api/daily-plan", dailyPlanRoute);
 app.use("/api/streak", streakRoute);
+app.use("/api/feedback", feedbackRoute);
+app.use("/api/user", insightRoute);
+app.use("/api/user", patternInsightRoute);
