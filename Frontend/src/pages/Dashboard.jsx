@@ -1,8 +1,54 @@
 import Sidebar from "../components/Sidebar";
 import ProgressBar from "../components/ProgressBar";
 import ConfidenceDonut from "../components/ConfidenceDonut";
+import { useEffect, useState } from "react";
+import { getDashboardStats } from "../services/dashboardService";
 
 const Dashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async() => {
+      try {
+        const data = await getDashboardStats();
+        setStats(data.data);
+      } catch (error) {
+        console.error(error);
+        setError("Failed to load dashboard");
+      }finally{
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 p-10 space-y-6 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="grid grid-cols-4 gap-6 mt-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 bg-gray-200 rounded-2xl"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
 
@@ -19,24 +65,38 @@ const Dashboard = () => {
         </p>
 
         { /* Stats */ }
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
 
           <div className="bg-white p-6 rounded-2xl shadow-sm">
-            <p className="text-sm text-gray-500">Overall Mastery</p>
-            <p className="text-3xl font-bold text-indigo-600 mt-2">72%</p>
+            <p className="text-sm text-gray-500">Total Submissions</p>
+            <p className="text-3xl font-bold text-indigo-600 mt-2">
+              {stats.totalSubmissions}
+            </p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm">
-            <p className="text-sm text-gray-500">Strong Patterns</p>
-            <p className="text-3xl font-bold text-green-600 mt-2">5</p>
+            <p className="text-sm text-gray-500">Correct Submissions</p>
+            <p className="text-3xl font-bold text-green-600 mt-2">
+              {stats.correctSubmissions}
+            </p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm">
-            <p className="text-sm text-gray-500">Weak Patterns</p>
-            <p className="text-3xl font-bold text-red-600 mt-2">3</p>
+            <p className="text-sm text-gray-500">Accuracy</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">
+              {stats.accuracy}%
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl shadow-sm">
+            <p className="text-sm text-gray-500">Problems Solved</p>
+            <p className="text-3xl font-bold text-purple-600 mt-2">
+              {stats.problemsSolved}
+            </p>
           </div>
 
         </div>
+
 
         {/* Content */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-8">
@@ -105,6 +165,47 @@ const Dashboard = () => {
                 Low
               </div>
             </div>
+          </div>
+            
+          {/* Recent Submissions */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm mt-8">
+            <h3 className="text-lg font-semibold mb-6">
+              Recent Submissions
+            </h3>
+
+            {stats.recentSubmissions.length === 0 ? (
+              <p className="text-gray-500">
+                No submissions yet. Start solving problems!
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {stats.recentSubmissions.map((submission) => (
+                  <div
+                    key={submission._id}
+                    className="flex justify-between items-center border-b pb-2"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {submission.problem?.title}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {submission.problem?.difficulty}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`font-semibold ${
+                        submission.verdict === "Accepted"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {submission.verdict}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
