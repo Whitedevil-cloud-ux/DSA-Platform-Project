@@ -12,6 +12,7 @@ const streakRoute = require("./Routes/StreakRoutes");
 const feedbackRoute = require("./Routes/feedbackRoutes");
 const insightRoute = require("./Routes/InsightRoutes");
 const patternInsightRoute = require("./Routes/PatternInsightRoutes");
+const dashboardRoute = require("./Routes/DashboardRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
@@ -43,3 +44,4 @@ app.use("/api/streak", streakRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/user", insightRoute);
 app.use("/api/user", patternInsightRoute);
+app.use("/api/dashboard", dashboardRoute);
