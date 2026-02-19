@@ -2,7 +2,7 @@ const { handleSubmission } = require("../services/SubmissionService");
 const { updateUserStreak } = require("../services/StreakService");
 
 async function submitProblem(req, res) {
-    const { problemId, isCorrect, difficulty, language } = req.body;
+    const { problemId, isCorrect, difficulty, language, confidence } = req.body;
     const userId = req.user.id;
 
     const submission = await handleSubmission({
@@ -11,6 +11,7 @@ async function submitProblem(req, res) {
         isCorrect,
         difficulty,
         language,
+        confidence,
     });
 
     if(isCorrect === true){

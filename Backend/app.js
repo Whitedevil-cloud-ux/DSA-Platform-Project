@@ -13,6 +13,7 @@ const feedbackRoute = require("./Routes/feedbackRoutes");
 const insightRoute = require("./Routes/InsightRoutes");
 const patternInsightRoute = require("./Routes/PatternInsightRoutes");
 const dashboardRoute = require("./Routes/DashboardRoutes");
+const problemRoute = require("./Routes/ProblemRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
@@ -38,10 +39,11 @@ app.use(express.json());
 
 app.use("/", authRoute);
 app.use("/api/user", userRoute);
-app.use("/api/submission", submissionRoute);
+app.use("/api/submissions", submissionRoute);
 app.use("/api/daily-plan", dailyPlanRoute);
 app.use("/api/streak", streakRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/user", insightRoute);
 app.use("/api/user", patternInsightRoute);
 app.use("/api/dashboard", dashboardRoute);
+app.use("/api/problems", problemRoute);

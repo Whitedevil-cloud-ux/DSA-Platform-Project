@@ -53,6 +53,19 @@ const problemSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+
+        approaches: [
+            {
+                title: { type: String },
+                explaination: { type: String },
+                timeComplexity: { type: String },
+                spaceComplexity: { type: String },
+            }
+        ],
+
+        externalLink: {
+            type: String,
+        },
     },
     {
         timestamps: true,

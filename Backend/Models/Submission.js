@@ -29,6 +29,12 @@ const submissionSchema = new mongoose.Schema(
             type: String,
             default: "unknown",
         },
+
+        confidence: {
+            type: String,
+            enum: ["High", "Medium", "Low"],
+            default: null,
+        },
     },
     {
         timestamps: true,

@@ -46,6 +46,8 @@ async function computeDynamicPressure(userId) {
         };
     }
 
+    let pressureScore = 0;
+
     // Accuracy
     const correct = submissions.filter(s => s.isCorrect).length;
     const accuracy = correct / submissions.length;
