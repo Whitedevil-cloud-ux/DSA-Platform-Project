@@ -3,6 +3,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Problems from "./pages/Problems";
+import ProblemDetail from "./pages/ProblemDetail";
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/problems" element={<Problems />} />
+        <Route path="/problems/:slug" element={<ProblemDetail />} />
       </Routes>
     </BrowserRouter>
   );

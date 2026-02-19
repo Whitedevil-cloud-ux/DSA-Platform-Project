@@ -186,21 +186,21 @@ const Dashboard = () => {
                   >
                     <div>
                       <p className="font-medium">
-                        {submission.problem?.title}
+                        {submission.problemId?.title}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {submission.problem?.difficulty}
+                        {submission.problemId?.difficulty}
                       </p>
                     </div>
 
                     <span
                       className={`font-semibold ${
-                        submission.verdict === "Accepted"
+                        submission.isCorrect === "Accepted"
                           ? "text-green-600"
                           : "text-red-600"
                       }`}
                     >
-                      {submission.verdict}
+                      {submission.isCorrect}
                     </span>
                   </div>
                 ))}

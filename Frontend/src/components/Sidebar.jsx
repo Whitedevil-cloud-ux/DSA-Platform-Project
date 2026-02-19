@@ -1,7 +1,13 @@
-import { LayoutDashboard, BarChart3, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  BarChart3,
+  BookOpen,
+  LogOut,
+} from "lucide-react";
+
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const { logout } = useContext(AuthContext);
@@ -11,6 +17,13 @@ const Sidebar = () => {
     logout();
     navigate("/login", { replace: true });
   };
+
+  const navItemStyle = ({ isActive }) =>
+    `flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${
+      isActive
+        ? "bg-indigo-100 text-indigo-600 shadow-sm"
+        : "text-gray-600 hover:bg-gray-100"
+    }`;
 
   return (
     <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col justify-between">
@@ -22,15 +35,20 @@ const Sidebar = () => {
 
         <nav className="px-4 space-y-2">
 
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-100 text-indigo-600 font-medium shadow-sm">
+          <NavLink to="/dashboard" className={navItemStyle}>
             <LayoutDashboard size={18} />
             Dashboard
-          </div>
+          </NavLink>
 
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-100 transition">
+          <NavLink to="/problems" className={navItemStyle}>
+            <BookOpen size={18} />
+            Problems
+          </NavLink>
+
+          <NavLink to="/analytics" className={navItemStyle}>
             <BarChart3 size={18} />
             Analytics
-          </div>
+          </NavLink>
 
         </nav>
       </div>
