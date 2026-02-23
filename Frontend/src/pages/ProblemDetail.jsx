@@ -1,4 +1,4 @@
-import { submitProblem } from "../services/submissionService";
+import { submitProblem, getProblemSubmissions } from "../services/submissionService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getProblemBySlug } from "../services/problemService";
@@ -14,6 +14,7 @@ const ProblemDetail = () => {
   const [language, setLanguage] = useState("javascript");
   const [submitting, setSubmitting] = useState(false);
   const [verdict, setVerdict] = useState(null);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -31,7 +32,21 @@ const ProblemDetail = () => {
     fetchProblem();
   }, [slug]);
 
+  useEffect(() => {
+    if(!problem) return;
+    const fetchHistory = async() => {
+        try {
+            const data = await getProblemSubmissions(problem._id);
+            setHistory(data.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    fetchHistory();
+  }, [problem]);
+
   const handleSubmit = async () => {
+  if(submitting) return; 
   if (!code.trim()) {
     alert("Please write some code before submitting.");
     return;
@@ -42,17 +57,26 @@ const ProblemDetail = () => {
 
     const response = await submitProblem({
     problemId: problem._id,
-    isCorrect: Math.random() > 0.5, // temporary simulation
+    isCorrect: Math.random() > 0.5, 
     difficulty: problem.difficulty,
     language,
     });
 
-    const isCorrect = response.data.isCorrect;
-    setVerdict(isCorrect ? "Accepted" : "Wrong Answer");
+    const isCorrect = response?.data?.data?.submission?.isCorrect;
+    if(typeof isCorrect === "boolean"){
+        setVerdict(isCorrect ? "Accepted" : "Wrong Answer");
+    }
+
+    const updatedHistory = await getProblemSubmissions(problem._id);
+    setHistory(updatedHistory.data);
 
     } catch (error) {
         console.error(error);
-        alert("Submission failed");
+        if(error.response?.status === 429){
+            alert("Please wait before submitting again.");
+        }else{
+            alert(error.response?.data?.message || "Submission failed");
+        }
     } finally {
         setSubmitting(false);
         }
@@ -233,6 +257,23 @@ const ProblemDetail = () => {
                 ))}
                 </div>
             </div>
+            )}
+
+            {history.length > 0 && (
+                <div className="mt-10 bg-white p-6 rounded-xl shadow-sm">
+                    <h3 className="text-lg font-semibold mb-4">Submission History</h3>
+                    <div className="space-y-2 text-sm">
+                        {history.map((item, index) => (
+                            <div key={index} className="flex justify-between border-b pb-2">
+                                <span>{new Date(item.createdAt).toLocaleString()}</span>
+                                <span className={
+                                    item.isCorrect ? "text-green-600 font-semibold" : "text-red-600 font-semibold"
+                                }>{item.isCorrect ? "AC" : "WA"}</span>
+                                <span className="text-gray-600">{item.language}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             )}
 
         </div>

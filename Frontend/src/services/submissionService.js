@@ -4,3 +4,8 @@ export const submitProblem = async(payload) => {
     const response = await api.post("/api/submissions", payload);
     return response.data;
 };
+
+export const getProblemSubmissions = async(problemId) => {
+    const response = await api.get(`/api/submissions/problem/${problemId}`);
+    return response.data;
+}
