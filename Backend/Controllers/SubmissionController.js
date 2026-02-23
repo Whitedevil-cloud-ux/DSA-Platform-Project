@@ -1,24 +1,58 @@
 const { handleSubmission } = require("../services/SubmissionService");
 const { updateUserStreak } = require("../services/StreakService");
+const Submission = require("../Models/Submission");
 
 async function submitProblem(req, res) {
-    const { problemId, isCorrect, difficulty, language, confidence } = req.body;
-    const userId = req.user.id;
+    try {
+        const { problemId, isCorrect, difficulty, language, confidence } = req.body;
+        const userId = req.user.id;
 
-    const submission = await handleSubmission({
-        userId,
-        problemId,
-        isCorrect,
-        difficulty,
-        language,
-        confidence,
-    });
+        const submission = await handleSubmission({
+            userId,
+            problemId,
+            isCorrect,
+            difficulty,
+            language,
+            confidence,
+        });
 
-    if(isCorrect === true){
-        await updateUserStreak(userId);
+        if(isCorrect === true){
+            await updateUserStreak(userId);
+        }
+
+        res.status(201).json({ 
+            message: "Submission recorded successfully", 
+            success: true, 
+            data: submission });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Internal server error"
+        });
     }
-
-    res.status(201).json({ message: "Submission recorded successfully", success: true, data: submission });
+    
 }
 
-module.exports = { submitProblem };
+async function getProblemSubmissions(req, res) {
+    try {
+        const { problemId } = req.params;
+        const userId = req.user.id;
+
+        const submissions = await Submission.find({
+            userId,
+            problemId,
+        }).sort({ createdAt: -1 }).limit(20).select("isCorrect difficulty language createdAt");
+        res.status(200).json({
+            success: true,
+            data: submissions,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch submissions",
+        });
+    }
+}
+
+module.exports = { submitProblem, getProblemSubmissions };

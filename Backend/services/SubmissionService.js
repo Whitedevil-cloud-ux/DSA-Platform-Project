@@ -24,6 +24,18 @@ async function handleSubmission({
     if(!user){
         throw new Error("User not found");
     }
+    const recentSubmission = await Submission.findOne({
+        userId, 
+        problemId,
+    }).sort({ createdAt: -1 });
+    if(recentSubmission) {
+        const timeDiff = Date.now() - new Date(recentSubmission.createdAt).getTime();
+        if(timeDiff < 3000){
+            const error = new Error("Duplicate submission detected");
+            error.statusCode = 429;
+            throw error;
+        }
+    }
     const streakResult = detectMissedDayAndUpdateStreak(user);
     const pressureSignal = generatePressureSignal(streakResult);
     let shouldNudge = false;
