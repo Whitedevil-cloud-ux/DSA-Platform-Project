@@ -178,4 +178,30 @@ async function updatePatternProgress({
     await progress.save();
 }
 
-module.exports = { handleSubmission };
+async function updateSubmissionConfidence({
+    userId,
+    submissionId,
+    confidence,
+}) {
+    console.log("PATCH HIT");
+    console.log("Submission ID:", submissionId);
+    console.log("Confidence:", confidence);
+
+    const updated = await Submission.findOneAndUpdate(
+        { _id: submissionId, userId },
+        { confidence },
+        { new: true }
+    );
+
+    console.log("Updated doc:", updated);
+
+    if (!updated) {
+        const error = new Error("Submission not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    return updated;
+}
+
+module.exports = { handleSubmission, updateSubmissionConfidence };

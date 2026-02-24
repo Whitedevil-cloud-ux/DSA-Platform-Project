@@ -1,4 +1,4 @@
-const { handleSubmission } = require("../services/SubmissionService");
+const { handleSubmission, updateSubmissionConfidence } = require("../services/SubmissionService");
 const { updateUserStreak } = require("../services/StreakService");
 const Submission = require("../Models/Submission");
 
@@ -55,4 +55,29 @@ async function getProblemSubmissions(req, res) {
     }
 }
 
-module.exports = { submitProblem, getProblemSubmissions };
+async function updateConfidence(req, res) {
+    try {
+        const { submissionId } = req.params;
+        const { confidence } = req.body;
+        const userId = req.user.id;
+        
+        const updated = await updateSubmissionConfidence({
+            userId,
+            submissionId,
+            confidence,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Confidence updated successfully",
+            data: updated,
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || "Failed to update confidence",
+        });
+    }
+}
+
+module.exports = { submitProblem, getProblemSubmissions, updateConfidence };
