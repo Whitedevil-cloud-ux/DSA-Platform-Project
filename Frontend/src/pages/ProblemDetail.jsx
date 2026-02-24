@@ -1,4 +1,4 @@
-import { submitProblem, getProblemSubmissions } from "../services/submissionService";
+import { submitProblem, getProblemSubmissions, updateConfidence } from "../services/submissionService";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getProblemBySlug } from "../services/problemService";
@@ -15,6 +15,7 @@ const ProblemDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [verdict, setVerdict] = useState(null);
   const [history, setHistory] = useState([]);
+  const [lastSubmissionId, setLastSubmissionId] = useState(null);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -46,7 +47,7 @@ const ProblemDetail = () => {
   }, [problem]);
 
   const handleSubmit = async () => {
-  if(submitting) return; 
+  if (submitting) return;
   if (!code.trim()) {
     alert("Please write some code before submitting.");
     return;
@@ -56,43 +57,41 @@ const ProblemDetail = () => {
     setSubmitting(true);
 
     const response = await submitProblem({
-    problemId: problem._id,
-    isCorrect: Math.random() > 0.5, 
-    difficulty: problem.difficulty,
-    language,
+      problemId: problem._id,
+      isCorrect: Math.random() > 0.5,
+      difficulty: problem.difficulty,
+      language,
     });
 
-    const isCorrect = response?.data?.data?.submission?.isCorrect;
-    if(typeof isCorrect === "boolean"){
-        setVerdict(isCorrect ? "Accepted" : "Wrong Answer");
+    const submission = response?.data?.submission;
+
+    if (submission) {
+      setLastSubmissionId(submission._id);
+      setVerdict(submission.isCorrect ? "Accepted" : "Wrong Answer");
     }
 
     const updatedHistory = await getProblemSubmissions(problem._id);
     setHistory(updatedHistory.data);
 
-    } catch (error) {
-        console.error(error);
-        if(error.response?.status === 429){
-            alert("Please wait before submitting again.");
-        }else{
-            alert(error.response?.data?.message || "Submission failed");
-        }
-    } finally {
-        setSubmitting(false);
-        }
-    };
+  } catch (error) {
+    console.error(error);
+    if (error.response?.status === 429) {
+      alert("Please wait before submitting again.");
+    } else {
+      alert(error.response?.data?.message || "Submission failed");
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
 
     const handleConfidence = async(level) => {
-        try {
-            await submitProblem({
-                problemId: problem._id,
-                isCorrect: verdict === "Accepted",
-                difficulty: problem.difficulty,
-                language,
-                confidence: level,
-            });
+        if(!lastSubmissionId) return;
+        try{
+            await updateConfidence(lastSubmissionId, level);
+            console.log("Last submission id: ", lastSubmissionId);
             alert("Confidence recorded");
-        } catch (error) {
+        }catch(error) {
             console.error(error);
         }
     };
