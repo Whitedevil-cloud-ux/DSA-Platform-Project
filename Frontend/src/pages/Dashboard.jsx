@@ -3,21 +3,40 @@ import ProgressBar from "../components/ProgressBar";
 import ConfidenceDonut from "../components/ConfidenceDonut";
 import { useEffect, useState } from "react";
 import { getDashboardStats } from "../services/dashboardService";
+import { getConfidenceAnalytics } from "../services/analyticsService";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [patternMastery, setPatternMastery] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confidenceData, setConfidenceData] = useState({
+    high: 0,
+    medium: 0,
+    low: 0
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await getDashboardStats();
-        const data = response.data;
+        const [dashboardRes, confidenceRes] = await Promise.all([
+          getDashboardStats(),
+          getConfidenceAnalytics(),
+        ]);
 
-        setStats(data);
-        setPatternMastery(data.patternMastery || []);
+        const dashboardData = dashboardRes.data;
+        const confidenceData = confidenceRes.data;
+
+        setStats(dashboardData);
+        setPatternMastery(dashboardData.patternMastery || []);
+        setConfidenceData(confidenceData);
+        // const response = await getDashboardStats();
+        // const data = response.data;
+
+        // setStats(data);
+        // setPatternMastery(data.patternMastery || []);
       } catch (err) {
         console.error(err);
         setError("Failed to load dashboard");
@@ -194,6 +213,30 @@ const Dashboard = () => {
 
         </div>
 
+        {/* Recommended Focus */}
+        {stats.focusPattern && (
+          <div className="bg-indigo-50 p-6 rounded-2xl shadow-sm mt-10 border border-indigo-100">
+            <h3 className="text-lg font-semibold mb-2 text-indigo-700">Recommended Focus</h3>
+            <p className="text-gray-700">
+              Focus on{" "}
+              <span className="font-semibold text-indigo-600">
+                {stats.focusPattern.pattern}
+              </span>{" "}
+              - low mastery & high interview importance.
+            </p>
+            <div className="mt-4 text-sm text-gray-600">
+              Mastery: {stats.focusPattern.masteryScore} % . 
+              Interview Weight: {stats.focusPattern.interviewWeight}
+            </div>
+
+            <button
+            onClick={() => navigate(`/problems/?pattern=${encodeURIComponent(stats.focusPattern.pattern)}`)}
+            className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300">
+              Practice Now →
+            </button>
+          </div>
+        )}
+
         {/* Confidence + Recent */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-10">
 
@@ -202,13 +245,7 @@ const Dashboard = () => {
               Confidence Distribution
             </h3>
 
-            <ConfidenceDonut
-              data={{
-                high: 5,
-                medium: 7,
-                low: 3,
-              }}
-            />
+            <ConfidenceDonut data={confidenceData} />
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm">

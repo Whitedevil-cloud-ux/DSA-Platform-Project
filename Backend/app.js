@@ -14,6 +14,7 @@ const insightRoute = require("./Routes/InsightRoutes");
 const patternInsightRoute = require("./Routes/PatternInsightRoutes");
 const dashboardRoute = require("./Routes/DashboardRoutes");
 const problemRoute = require("./Routes/ProblemRoutes");
+const analyticsRoute = require("./Routes/AnalyticsRoutes");
 const { MONGO_URL, PORT } = process.env; 
 
 mongoose
@@ -47,3 +48,4 @@ app.use("/api/user", insightRoute);
 app.use("/api/user", patternInsightRoute);
 app.use("/api/dashboard", dashboardRoute);
 app.use("/api/problems", problemRoute);
+app.use("/api/analytics", analyticsRoute);

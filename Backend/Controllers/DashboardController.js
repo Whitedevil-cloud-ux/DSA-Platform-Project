@@ -35,11 +35,27 @@ const getDashboardStats = async (req, res) => {
     const patternMastery = patternProgress.map((item) => ({
       pattern: item.patternId?.name || "Unknown",
       masteryScore: item.masteryScore,
+      interviewWeight: item.patternId?.interviewWeight || 0,
       accuracy: item.accuracy,
       confidenceLevel: item.confidenceLevel,
       problemsSolved: item.problemsSolved,
       problemsAttempted: item.problemsAttempted,
     }));
+
+    let focusPattern = null;
+
+    if(patternMastery.length > 0){
+      const sortedForFocus = [...patternMastery].sort((a, b) => {
+        // Primary: lowest masteryScore
+        if(a.masteryScore !== b.masteryScore){
+          return a.masteryScore - b.masteryScore;
+        }
+        // Secondary: highest interviewWeight
+        return b.interviewWeight - a.interviewWeight;
+      });
+
+      focusPattern = sortedForFocus[0];
+    }
 
     const strongestPattern = patternMastery.length > 0
         ? patternMastery[0] 
@@ -60,6 +76,7 @@ const getDashboardStats = async (req, res) => {
         patternMastery,
         strongestPattern,
         weakestPattern,
+        focusPattern,
       },
     });
 
