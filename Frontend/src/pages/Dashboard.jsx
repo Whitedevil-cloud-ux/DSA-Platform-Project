@@ -141,8 +141,30 @@ const Dashboard = () => {
                       <span className="font-medium">
                         {item.pattern}
                       </span>
-                      <span className="text-sm text-gray-600">
-                        {score}% • {label}
+                      <span className="text-sm flex items-center gap-2">
+                        <span className="text-gray-600">
+                          {score}% • {label}
+                        </span>
+                        {item.trend === "improving" && (
+                          <span className="text-green-600 font-medium">
+                            Improving
+                          </span>
+                        )}
+                        {item.trend === "declining" && (
+                          <span className="text-red-600 font-medium">
+                            Declining
+                          </span>
+                        )}
+                        {item.trend === "stable" && (
+                          <span className="text-gray-500 font-medium">
+                            Stable
+                          </span>
+                        )}
+                        {item.isAtRisk && (
+                          <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                            At Risk
+                          </span>
+                        )}
                       </span>
                     </div>
 
@@ -155,7 +177,9 @@ const Dashboard = () => {
 
                     <div className="text-xs text-gray-500 mt-1">
                       Accuracy: {Math.round(item.accuracy * 100)}% •
-                      Solved: {item.problemsSolved}/{item.problemsAttempted}
+                      Solved: {item.problemsSolved}/{item.problemsAttempted} •
+                      Last practiced: {" "}
+                      {item.lastPracticedAt ? new Date(item.lastPracticedAt).toLocaleDateString() : "Never"}
                     </div>
                   </div>
                 );
@@ -234,6 +258,53 @@ const Dashboard = () => {
             className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300">
               Practice Now →
             </button>
+          </div>
+        )}
+
+        {/* Performance Insight */}
+        {stats.focusPattern && (
+          <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-2xl mt-6">
+            <h3 className="font-semibold text-yellow-800 mb-2">
+              Performance Insight
+            </h3>
+            <p className="text-gray-700">
+              Your weakest high-impact pattern is{" "}
+              <span className="font-semibold">
+                {stats.focusPattern.pattern}
+              </span>.
+              {stats.focusPattern.trend === "declining" &&
+              " Performance is declining — prioritize immediately."}
+              {stats.focusPattern.trend === "stable" &&
+              " Performance is stagnant — push for improvement."}
+              {stats.focusPattern.trend === "improving" &&
+              " Good progress — maintain momentum."}
+            </p>
+            {stats.focusPattern.isAtRisk && (
+              <div className="mt-3 text-red-600 font-medium">
+                ⚠ This pattern is at risk. Focus urgently.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Daily Plan */}
+        {stats.dailyPlan && stats.dailyPlan.length > 0 && (
+          <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
+            <h3 className="text-lg font-semibold mb-4">
+              Today's Adaptive Plan 
+            </h3>
+            <div className="space-y-4">
+              {stats.dailyPlan.map((item, index) => (
+                <div key={index} className="border-l-4 border-indigo-500 pl-4">
+                  <p className="font-medium">
+                    {item.task} — {item.pattern}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {item.reason}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
