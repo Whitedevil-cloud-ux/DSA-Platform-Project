@@ -1,6 +1,7 @@
 const Submission = require("../Models/Submission");
 const UserPatternProgress = require("../Models/UserPatternProgress");
 const Pattern = require("../Models/Pattern");
+const Problem = require("../Models/Problem");
 
 const getDashboardStats = async (req, res) => {
   try {
@@ -32,29 +33,112 @@ const getDashboardStats = async (req, res) => {
     .populate("patternId", "name interviewWeight")
     .sort({ masteryScore: -1 });
 
-    const patternMastery = patternProgress.map((item) => ({
-      pattern: item.patternId?.name || "Unknown",
-      masteryScore: item.masteryScore,
-      interviewWeight: item.patternId?.interviewWeight || 0,
-      accuracy: item.accuracy,
-      confidenceLevel: item.confidenceLevel,
-      problemsSolved: item.problemsSolved,
-      problemsAttempted: item.problemsAttempted,
-    }));
+    const patternMastery = await Promise.all(
+      patternProgress.map(async (item) => {
+        const patternId = item.patternId?._id;
+        const problemsWithPattern = await Problem.find({
+          patterns: patternId,
+        }).select("_id");
+        const problemIds = problemsWithPattern.map((p) => p._id);
+
+        // Last 5 submissions
+        const recentSubs = await Submission.find({
+          userId,
+          problemId: { $in: problemIds },
+        })
+        .sort({ createdAt: -1 })
+        .limit(5);
+
+        let recentAccuracy = 0;
+        if(recentSubs.length > 0){
+          const recentCorrect = recentSubs.filter((s) => s.isCorrect).length;
+          recentAccuracy = recentCorrect/recentSubs.length;
+        }
+        const overallAccuracy = item.accuracy;
+        let trend = "stable";
+        if(recentAccuracy > overallAccuracy + 0.05){
+          trend = "improving";
+        }else if(recentAccuracy < overallAccuracy - 0.05){
+          trend = "declining";
+        }
+        const isAtRisk = item.masteryScore < 40 && trend === "declining";
+
+        return {
+          pattern: item.patternId?.name || "Unknown",
+          masteryScore: item.masteryScore,
+          interviewWeight: item.patternId?.interviewWeight || 0,
+          accuracy: overallAccuracy,
+          confidenceLevel: item.confidenceLevel,
+          problemsSolved: item.problemsSolved,
+          problemsAttempted: item.problemsAttempted,
+          trend,
+          isAtRisk,
+          lastPracticedAt: item.lastPracticedAt,
+        };
+      })
+    );
 
     let focusPattern = null;
 
     if(patternMastery.length > 0){
-      const sortedForFocus = [...patternMastery].sort((a, b) => {
-        // Primary: lowest masteryScore
-        if(a.masteryScore !== b.masteryScore){
-          return a.masteryScore - b.masteryScore;
-        }
-        // Secondary: highest interviewWeight
-        return b.interviewWeight - a.interviewWeight;
-      });
+      const scoredPatterns = patternMastery.map((item) => {
+        let trendPenalty = 0;
+        if(item.trend === "declining") trendPenalty = 15;
+        if(item.trend === "improving") trendPenalty = -5;
 
-      focusPattern = sortedForFocus[0];
+        // Recency penalty (if last practiced > 7 days ago)
+        let recencyPenalty = 0;
+        const now = new Date();
+        const lastPracticed = patternProgress.find(
+          (p) => p.patternId?.name === item.pattern
+        )?.lastPracticedAt;
+
+        if(lastPracticed){
+          const daysDiff = (now - new Date(lastPracticed)) / (1000 * 60 * 60 * 24);
+          if(daysDiff > 7) recencyPenalty = 10;
+        }
+        const focusScore = 
+          (100 - item.masteryScore) * 0.5 +
+          item.interviewWeight * 8 +
+          trendPenalty + 
+          recencyPenalty;
+
+        return { ...item, focusScore };
+      });
+      scoredPatterns.sort((a, b) => b.focusScore - a.focusScore);
+
+      focusPattern = scoredPatterns[0];
+    }
+
+    let dailyPlan = [];
+    if(patternMastery.length > 0) {
+      const atRiskPattern = patternMastery.find(p => p.isAtRisk);
+      if(atRiskPattern){
+        dailyPlan.push({
+          pattern: atRiskPattern.pattern,
+          task: "Solve 3 problems",
+          reason: "Pattern is declining and at risk",
+        });
+      }
+
+      if(focusPattern){
+        dailyPlan.push({
+          pattern: focusPattern.pattern,
+          task: "Solve 2 problems",
+          reason: "High priority basedo n mastery and interview weight",
+        });
+      }
+      const improvingPattern = patternMastery
+        .filter(p => p.trend === "improving")
+        .sort((a, b) => b.masteryScore - a.masteryScore)[0];
+
+      if(improvingPattern) {
+        dailyPlan.push({
+          pattern: improvingPattern.pattern,
+          task: "Revise 1 problem",
+          reason: "Maintain momentum in improving pattern",
+        });
+      }
     }
 
     const strongestPattern = patternMastery.length > 0
@@ -77,6 +161,7 @@ const getDashboardStats = async (req, res) => {
         strongestPattern,
         weakestPattern,
         focusPattern,
+        dailyPlan,
       },
     });
 
