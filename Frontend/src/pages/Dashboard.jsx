@@ -82,6 +82,17 @@ const Dashboard = () => {
           Track your learning insights & mastery progress
         </p>
 
+        {/* Interview Readiness */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm mb-8 text-center">
+          <h2 className="text-lg text-gray-500">Interview Readiness</h2>
+          <p className="text-5xl font-bold text-indigo-600 mt-4">
+            {stats.interviewReadiness}%
+          </p>
+          <p className="text-gray-500 mt-2">
+            Overall preparedness based on mastery, trends & risk signals.
+          </p>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
           <div className="bg-white p-6 rounded-2xl shadow-sm">

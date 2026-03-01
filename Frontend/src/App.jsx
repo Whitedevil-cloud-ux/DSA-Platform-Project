@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Problems from "./pages/Problems";
 import ProblemDetail from "./pages/ProblemDetail";
+import Analytics from "./pages/Analytics";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         />
         <Route path="/problems" element={<Problems />} />
         <Route path="/problems/:slug" element={<ProblemDetail />} />
+        <Route path="/analytics" element={<Analytics />} />
       </Routes>
     </BrowserRouter>
   );
