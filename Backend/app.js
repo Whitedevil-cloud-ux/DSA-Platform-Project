@@ -15,7 +15,8 @@ const patternInsightRoute = require("./Routes/PatternInsightRoutes");
 const dashboardRoute = require("./Routes/DashboardRoutes");
 const problemRoute = require("./Routes/ProblemRoutes");
 const analyticsRoute = require("./Routes/AnalyticsRoutes");
-const { MONGO_URL, PORT } = process.env; 
+const MONGO_URL = process.env.MONGO_URL;
+const PORT = process.env.PORT || 8080; 
 
 mongoose
     .connect(MONGO_URL, {
@@ -24,13 +25,9 @@ mongoose
     .then(() => console.log("MongoDB is connected successfully"))
     .catch((err) => console.error(err));
 
-app.listen(PORT, () => {
-    console.log(`Server is listening on port: ${PORT}`);
-});
-
 app.use(
     cors({
-        origin: ["http://localhost:5173"],
+        origin: process.env.FRONTEND_URL || "http://localhost:5173",
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
         credentials: true,
     })
@@ -49,3 +46,7 @@ app.use("/api/user", patternInsightRoute);
 app.use("/api/dashboard", dashboardRoute);
 app.use("/api/problems", problemRoute);
 app.use("/api/analytics", analyticsRoute);
+
+app.listen(PORT, () => {
+    console.log(`Server is listening on port: ${PORT}`);
+});
