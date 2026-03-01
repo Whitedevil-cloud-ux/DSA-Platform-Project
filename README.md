@@ -6,8 +6,8 @@ A full-stack intelligent DSA performance optimization system that analyzes maste
 
 ## Live Demo
 
-Frontend: https://your-frontend-url.vercel.app  
-Backend API: https://your-backend-url.onrender.com  
+Frontend: [https://your-frontend-url.vercel.app](https://dsa-platform-project.vercel.app/)  
+Backend API: [https://your-backend-url.onrender.com ](https://dsa-platform-project.onrender.com) 
 
 ---
 
