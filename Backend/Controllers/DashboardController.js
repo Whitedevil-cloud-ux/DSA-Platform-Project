@@ -33,7 +33,7 @@ const getDashboardStats = async (req, res) => {
     .populate("patternId", "name interviewWeight")
     .sort({ masteryScore: -1 });
 
-    const patternMastery = await Promise.all(
+    let patternMastery = await Promise.all(
       patternProgress.map(async (item) => {
         const patternId = item.patternId?._id;
         const problemsWithPattern = await Problem.find({
@@ -107,6 +107,7 @@ const getDashboardStats = async (req, res) => {
       });
       scoredPatterns.sort((a, b) => b.focusScore - a.focusScore);
 
+      patternMastery = scoredPatterns;
       focusPattern = scoredPatterns[0];
     }
 
@@ -125,7 +126,7 @@ const getDashboardStats = async (req, res) => {
         dailyPlan.push({
           pattern: focusPattern.pattern,
           task: "Solve 2 problems",
-          reason: "High priority basedo n mastery and interview weight",
+          reason: "High priority based on mastery and interview weight",
         });
       }
       const improvingPattern = patternMastery
@@ -139,6 +140,31 @@ const getDashboardStats = async (req, res) => {
           reason: "Maintain momentum in improving pattern",
         });
       }
+    }
+
+    let interviewReadiness = 0;
+    if(patternMastery.length > 0){
+      let totalWeightedScore = 0;
+      let totalWeight = 0;
+      let penalty = 0;
+
+      patternMastery.forEach((item) => {
+        totalWeightedScore += item.masteryScore * item.interviewWeight;
+        totalWeight += item.interviewWeight;
+
+        if(item.trend === "declining") penalty += 5;
+        if(item.isAtRisk) penalty += 10;
+        if(item.confidenceLevel === "low") penalty += 5;
+      });
+
+      const weightedAverage = totalWeight > 0 ? totalWeightedScore / totalWeight : 0;
+      const adjustmentFactor = 1-penalty/100;
+      interviewReadiness = weightedAverage * adjustmentFactor;
+
+      if(interviewReadiness < 0) interviewReadiness = 0;
+      if(interviewReadiness > 100) interviewReadiness = 100;
+
+      interviewReadiness = Math.round(interviewReadiness);
     }
 
     const strongestPattern = patternMastery.length > 0
@@ -162,6 +188,7 @@ const getDashboardStats = async (req, res) => {
         weakestPattern,
         focusPattern,
         dailyPlan,
+        interviewReadiness,
       },
     });
 
