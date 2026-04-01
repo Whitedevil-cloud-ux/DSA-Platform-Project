@@ -80,6 +80,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+
+    daysActive: {
+        type: [String],
+        default: []
+    }
 });
 
 userSchema.pre("save", async function () {

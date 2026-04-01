@@ -12,6 +12,7 @@ const { detectComeback, handleRecovery, updateRecoveryProgress } = require("./re
 const { generateReinforcementSignal } = require("./reinforcementService");
 const { orchestrateResponse } = require("./ResponseOrchestratorService");
 const { mapIntentToMessage } = require("./MessageMapper");
+const { updateUserActivity } = require("./ActivityService");
 
 async function handleSubmission({
     userId,
@@ -62,6 +63,8 @@ async function handleSubmission({
         difficulty,
         language,
     });
+
+    await updateUserActivity(userId);
 
     // Detect comeback & recovery first
     const comebackSignal = await detectComeback(user._id);
@@ -203,5 +206,6 @@ async function updateSubmissionConfidence({
 
     return updated;
 }
+
 
 module.exports = { handleSubmission, updateSubmissionConfidence };

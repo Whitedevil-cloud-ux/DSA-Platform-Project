@@ -1,6 +1,7 @@
 const { handleSubmission, updateSubmissionConfidence } = require("../services/SubmissionService");
 const { updateUserStreak } = require("../services/StreakService");
 const Submission = require("../Models/Submission");
+const { updateUserActivity } = require("../services/SubmissionService"); 
 
 async function submitProblem(req, res) {
     try {
@@ -15,6 +16,8 @@ async function submitProblem(req, res) {
             language,
             confidence,
         });
+
+        await updateUserActivity(userId);
 
         if(isCorrect === true){
             await updateUserStreak(userId);
@@ -79,5 +82,7 @@ async function updateConfidence(req, res) {
         });
     }
 }
+
+
 
 module.exports = { submitProblem, getProblemSubmissions, updateConfidence };
