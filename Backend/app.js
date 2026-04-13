@@ -15,6 +15,7 @@ const patternInsightRoute = require("./Routes/PatternInsightRoutes");
 const dashboardRoute = require("./Routes/DashboardRoutes");
 const problemRoute = require("./Routes/ProblemRoutes");
 const analyticsRoute = require("./Routes/AnalyticsRoutes");
+const errorMiddleware = require("./Middlewares/errorMiddleware");
 const MONGO_URL = process.env.MONGO_URL;
 const PORT = process.env.PORT || 8080; 
 
@@ -46,6 +47,7 @@ app.use("/api/user", patternInsightRoute);
 app.use("/api/dashboard", dashboardRoute);
 app.use("/api/problems", problemRoute);
 app.use("/api/analytics", analyticsRoute);
+app.use(errorMiddleware);
 
 app.listen(PORT, () => {
     console.log(`Server is listening on port: ${PORT}`);

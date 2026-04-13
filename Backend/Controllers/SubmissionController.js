@@ -1,39 +1,21 @@
-const { handleSubmission, updateSubmissionConfidence } = require("../services/SubmissionService");
-const { updateUserStreak } = require("../services/StreakService");
-const Submission = require("../Models/Submission");
-const { updateUserActivity } = require("../services/SubmissionService"); 
+// The controller becomes lightweight and delegates responsibilities to the Manager and Presenter
+const SubmissionManager = require("../Managers/SubmissionManager");
+const SubmissionPresenter = require("../Presenters/SubmissionPresenter");
 
 async function submitProblem(req, res) {
     try {
-        const { problemId, isCorrect, difficulty, language, confidence } = req.body;
         const userId = req.user.id;
-
-        const submission = await handleSubmission({
+        const submission = await SubmissionManager.submitProblem({
             userId,
-            problemId,
-            isCorrect,
-            difficulty,
-            language,
-            confidence,
+            ...req.body,
         });
 
-        await updateUserActivity(userId);
-
-        if(isCorrect === true){
-            await updateUserStreak(userId);
-        }
-
-        res.status(201).json({ 
-            message: "Submission recorded successfully", 
-            success: true, 
-            data: submission });
+        res.status(201).json(
+            SubmissionPresenter.submissionCreated(submission)
+        );
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            success: false,
-            message: error.message || "Internal server error"
-        });
+        next(error);
     }
-    
 }
 
 async function getProblemSubmissions(req, res) {
@@ -41,20 +23,15 @@ async function getProblemSubmissions(req, res) {
         const { problemId } = req.params;
         const userId = req.user.id;
 
-        const submissions = await Submission.find({
+        const submissions = await SubmissionManager.getProblemSubmissions({
             userId,
             problemId,
-        }).sort({ createdAt: -1 }).limit(20).select("isCorrect difficulty language createdAt");
-        res.status(200).json({
-            success: true,
-            data: submissions,
         });
+        res.status(200).json(
+            SubmissionPresenter.submissionsFetched(submissions)
+        );
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch submissions",
-        });
+        next(error);
     }
 }
 
@@ -64,22 +41,17 @@ async function updateConfidence(req, res) {
         const { confidence } = req.body;
         const userId = req.user.id;
         
-        const updated = await updateSubmissionConfidence({
+        const updated = await SubmissionManager.updateConfidence({
             userId,
             submissionId,
             confidence,
         });
 
-        res.status(200).json({
-            success: true,
-            message: "Confidence updated successfully",
-            data: updated,
-        });
+        res.status(200).json(
+            SubmissionPresenter.confidenceUpdated(submissions)
+        );
     } catch (error) {
-        res.status(error.statusCode || 500).json({
-            success: false,
-            message: error.message || "Failed to update confidence",
-        });
+        next(error);
     }
 }
 
