@@ -1,10 +1,6 @@
-import axios from "axios";
+import api from "./api";
 
 export const getConfidenceAnalytics = async() => {
-    const token = localStorage.getItem("token");
-    return axios.get("/api/analytics/confidence", {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    const response = await api.get("/api/analytics/confidence");
+    return response.data.data;
 };

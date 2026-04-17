@@ -26,8 +26,8 @@ const Dashboard = () => {
           getConfidenceAnalytics(),
         ]);
 
-        const dashboardData = dashboardRes.data;
-        const confidenceData = confidenceRes.data;
+        const dashboardData = dashboardRes;
+        const confidenceData = confidenceRes;
 
         setStats(dashboardData);
         setPatternMastery(dashboardData.patternMastery || []);

@@ -9,7 +9,7 @@ const Analytics = () => {
     useEffect(() => {
         const fetchData = async() => {
             const res = await getDashboardStats();
-            setStats(res.data);
+            setStats(res);
             setLoading(false);
         };
         fetchData();

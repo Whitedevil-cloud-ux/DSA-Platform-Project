@@ -21,7 +21,7 @@ const ProblemDetail = () => {
     const fetchProblem = async () => {
       try {
         const data = await getProblemBySlug(slug);
-        setProblem(data.data);
+        setProblem(data);
       } catch (err) {
         console.error(err);
         setError("Failed to load problem");
@@ -38,7 +38,7 @@ const ProblemDetail = () => {
     const fetchHistory = async() => {
         try {
             const data = await getProblemSubmissions(problem._id);
-            setHistory(data.data);
+            setHistory(data);
         } catch (error) {
             console.error(error);
         }
@@ -63,7 +63,7 @@ const ProblemDetail = () => {
       language,
     });
 
-    const submission = response?.data?.submission;
+    const submission = response?.submission;
 
     if (submission) {
       setLastSubmissionId(submission._id);
@@ -71,7 +71,7 @@ const ProblemDetail = () => {
     }
 
     const updatedHistory = await getProblemSubmissions(problem._id);
-    setHistory(updatedHistory.data);
+    setHistory(updatedHistory);
 
   } catch (error) {
     console.error(error);
