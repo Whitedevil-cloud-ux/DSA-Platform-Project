@@ -1,13 +1,17 @@
-const { getPatternInsights } = require("../services/PatternInsightService");
+const PatternInsightManager = require("../Managers/PatternInsightManager");
+const PatternInsightPresenter = require("../Presenters/PatternInsightPresenter");
 
-async function fetchPatternInsights(req, res) {
+async function fetchPatternInsights(req, res, next) {
     try {
-        const userId = req.user.id;
-        const insights = await getPatternInsights(userId);
-        res.json(insights);
+        const insights = await PatternInsightManager.fetchPatternInsights({
+            userId: req.user.id,
+        });
+
+        res.status(200).json(
+            PatternInsightPresenter.patternInsightsFetched(insights)
+        );
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to fetch pattern insights" });
+        next(error);
     }
 }
 

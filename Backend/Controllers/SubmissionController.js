@@ -2,7 +2,7 @@
 const SubmissionManager = require("../Managers/SubmissionManager");
 const SubmissionPresenter = require("../Presenters/SubmissionPresenter");
 
-async function submitProblem(req, res) {
+async function submitProblem(req, res, next) {
     try {
         const userId = req.user.id;
         const submission = await SubmissionManager.submitProblem({
@@ -18,7 +18,7 @@ async function submitProblem(req, res) {
     }
 }
 
-async function getProblemSubmissions(req, res) {
+async function getProblemSubmissions(req, res, next) {
     try {
         const { problemId } = req.params;
         const userId = req.user.id;
@@ -35,7 +35,7 @@ async function getProblemSubmissions(req, res) {
     }
 }
 
-async function updateConfidence(req, res) {
+async function updateConfidence(req, res, next) {
     try {
         const { submissionId } = req.params;
         const { confidence } = req.body;
@@ -48,7 +48,7 @@ async function updateConfidence(req, res) {
         });
 
         res.status(200).json(
-            SubmissionPresenter.confidenceUpdated(submissions)
+            SubmissionPresenter.confidenceUpdated(updated)
         );
     } catch (error) {
         next(error);

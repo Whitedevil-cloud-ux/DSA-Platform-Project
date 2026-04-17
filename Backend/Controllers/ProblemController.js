@@ -1,31 +1,29 @@
-const Problem = require("../Models/Problem");
+const ProblemManager = require("../Managers/ProblemManager");
+const ProblemPresenter = require("../Presenters/ProblemPresenter");
 
-const getAllProblems = async (req, res) => {
+const getAllProblems = async (req, res, next) => {
     try {
-        const problems = await Problem.find({ isActive: true }).populate("patterns", "name").sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data: problems, });
+        const problems = await ProblemManager.getAllProblems();
+
+        res.status(200).json(
+            ProblemPresenter.problemsFetched(problems)
+        );
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Failed to fetch problems" });
+        next(error);
     }
 };
 
-const getProblemBySlug = async(req, res) => {
+const getProblemBySlug = async(req, res, next) => {
     try {
-        const { slug } = req.params;
-        const problem = await Problem.findOne({
-            slug,
-            isActive: true,
-        }).populate("patterns", "name");
+        const problem = await ProblemManager.getProblemBySlug({
+            slug: req.params.slug,
+        });
 
-        if(!problem){
-            res.status(404).json({ success: false, message: "Problem not found" });
-        }
-
-        res.status(200).json({ success: true, data: problem });
+        res.status(200).json(
+            ProblemPresenter.problemFetched(problem)
+        );
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Failed to fetch problem" });
+        next(error);
     }
 };
 

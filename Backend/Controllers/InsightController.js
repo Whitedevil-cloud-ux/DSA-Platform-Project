@@ -1,12 +1,17 @@
-const { getUserInsights } = require("../services/InsightService");
+const InsightManager = require("../Managers/InsightManager");
+const InsightPresenter = require("../Presenters/InsightPresenter");
 
-async function fetchUserInsights(req, res) {
+async function fetchUserInsights(req, res, next) {
     try {
-        const userId = req.user.id;
-        const insights = await getUserInsights(userId);
-        res.status(200).json({ success: true, data: insights });
+        const insights = await InsightManager.fetchUserInsights({
+            userId: req.user.id,
+        });
+
+        res.status(200).json(
+            InsightPresenter.insightsFetched(insights)
+        );
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 }
 
