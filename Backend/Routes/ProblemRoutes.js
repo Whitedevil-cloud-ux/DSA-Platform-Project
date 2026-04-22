@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getAllProblems, getProblemBySlug } = require("../Controllers/ProblemController");
+const { getAllProblems, getProblemBySlug } = require("../src/controllers/Controllers/ProblemController");
 const AuthMiddleware = require("../Middlewares/AuthMiddleware");
 
 router.get("/", AuthMiddleware, getAllProblems);

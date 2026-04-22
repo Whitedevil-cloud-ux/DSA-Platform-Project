@@ -16,6 +16,12 @@ const dashboardRoute = require("./Routes/DashboardRoutes");
 const problemRoute = require("./Routes/ProblemRoutes");
 const analyticsRoute = require("./Routes/AnalyticsRoutes");
 const errorMiddleware = require("./Middlewares/errorMiddleware");
+// Start the submission worker (with error handling)
+try {
+    require("./src/workers/submissionWorker");
+} catch (err) {
+    console.warn("Worker initialization warning:", err.message);
+}
 const MONGO_URL = process.env.MONGO_URL;
 const PORT = process.env.PORT || 8080; 
 
@@ -28,9 +34,22 @@ mongoose
 
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        origin: function (origin, callback) {
+            const allowedOrigins = [
+                "http://localhost:5173",
+                "http://localhost:3000",
+                process.env.FRONTEND_URL
+            ];
+            
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         credentials: true,
+        optionsSuccessStatus: 200,
     })
 );
 app.use(cookieParser());

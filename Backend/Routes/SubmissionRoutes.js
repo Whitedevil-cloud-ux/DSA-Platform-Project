@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { submitProblem, getProblemSubmissions, updateConfidence } = require("../Controllers/SubmissionController");
+const { submitProblem, getProblemSubmissions, updateConfidence } = require("../src/controllers/Controllers/SubmissionController");
 const authMiddleware = require("../Middlewares/AuthMiddleware");
 
 router.post("/", authMiddleware, submitProblem);

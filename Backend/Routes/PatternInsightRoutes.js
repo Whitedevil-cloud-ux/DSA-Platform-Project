@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { fetchPatternInsights } = require("../Controllers/PatternInsightController");
+const { fetchPatternInsights } = require("../src/controllers/Controllers/PatternInsightController");
 const AuthMiddleware = require("../Middlewares/AuthMiddleware");
 
 router.get(

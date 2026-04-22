@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getConfidenceAnalytics } = require("../Controllers/AnalyticsController");
+const { getConfidenceAnalytics } = require("../src/controllers/Controllers/AnalyticsController");
 const AuthMiddleware = require("../Middlewares/AuthMiddleware");
 
 router.get("/confidence", AuthMiddleware, getConfidenceAnalytics);

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { generateDailyPlan } = require("../services/DailyPlan");
+const { generateDailyPlan } = require("../services/services/DailyPlan");
 const auth = require("../Middlewares/AuthMiddleware");
 
 router.get("/today", auth, async (req, res) => {
